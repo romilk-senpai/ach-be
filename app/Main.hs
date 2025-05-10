@@ -1,7 +1,14 @@
 module Main where
 
-import qualified Server (someFunc)
+import Handler
+import Router
+import qualified Server (run)
 
 main :: IO ()
 main = do
-  Server.someFunc
+  let host = "localhost"
+  let port = "3000"
+  let router = Router.routeRequest
+  let handler = Handler.createHandler router
+
+  Server.run host port handler
