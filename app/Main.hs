@@ -23,7 +23,7 @@ aboutHandler _ = do
 main :: IO ()
 main = do
   let host = "127.0.0.1"
-  let port = "3000"
+  let port = "3001"
 
   let router =
         addRoute "GET" "/" homeHandler $
