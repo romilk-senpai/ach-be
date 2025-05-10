@@ -2,25 +2,27 @@
 
 module Router where
 
+import Common (Method, Path, http200)
 import qualified Data.ByteString as BS
-import qualified Data.ByteString.Char8 as C8
+import qualified Data.Map.Strict as Map
 
-type Router = BS.ByteString -> BS.ByteString
+type HandlerFn = BS.ByteString -> BS.ByteString
 
-routeRequest :: Router
-routeRequest _ = http200 "text/plain" "Hello, World!"
+type RouteKey = (Method, Path)
 
-http200 :: BS.ByteString -> BS.ByteString -> BS.ByteString
-http200 contentType body =
-  BS.concat
-    [ "HTTP/1.1 200 OK\r\n",
-      "Content-Type: ",
-      contentType,
-      "\r\n",
-      "Content-Length: ",
-      C8.pack (show (BS.length body)),
-      "\r\n",
-      "Connection: close\r\n",
-      "\r\n",
-      body
-    ]
+type RouteMap = Map.Map RouteKey HandlerFn
+
+newtype Router = Router {routes :: RouteMap}
+
+errorHandler :: HandlerFn
+errorHandler _ = do
+  http200 "text/plain" "Error"
+
+addRoute :: Method -> Path -> HandlerFn -> Router -> Router
+addRoute method path handler (Router rs) = Router (Map.insert (method, path) handler rs)
+
+matchRoute :: Router -> Method -> Path -> HandlerFn
+matchRoute (Router rs) method path = do
+  case Map.lookup (method, path) rs of
+    Just handleFn -> handleFn
+    Nothing -> errorHandler
