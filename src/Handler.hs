@@ -32,7 +32,7 @@ createHandler router sock = do
   let (segments, _) = path
   let handler = matchRoute router (method, segments)
 
-  let response = handler request
+  response <- handler request
   let bsResponse = encodeResponse response
 
   C8.putStrLn bsResponse
