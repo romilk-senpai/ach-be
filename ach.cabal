@@ -59,7 +59,14 @@ library
     -- other-extensions:
 
     -- Other library packages from which modules are imported.
-    build-depends:    base, network, bytestring, text ^>=2.0.2, containers ^>=0.6.7, http-types ^>= 0.12.4
+    build-depends:
+        base,
+        network,
+        bytestring,
+        text,
+        containers,
+        http-types,
+        case-insensitive
 
     -- Directories containing source files.
     hs-source-dirs:   src
@@ -82,9 +89,10 @@ executable ach
 
     -- Other library packages from which modules are imported.
     build-depends:
-        containers ^>=0.6.7,
-        base ^>=4.18.3.0,
-        ach
+        ach,
+        base,
+        text,
+        containers
 
     -- Directories containing source files.
     hs-source-dirs:   app

@@ -2,38 +2,62 @@
 
 module Common where
 
+import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as C8
-import qualified Data.Text as Data
-import Network.HTTP.Types (Header, Method, Query, RequestHeaders, ResponseHeaders, Status, hConnection, hContentLength, hContentType, ok200)
+import qualified Data.CaseInsensitive as CI
+import Data.Text (Text, length)
+import qualified Data.Text.Encoding as TE
+import Network.HTTP.Types
 
--- createRequest :: Method -> Path -> RequestHeaders -> Data.Text -> Request
--- createRequest method path headers body =
---   Request
---     { reqMethod = method,
---       reqPath = path,
---       reqHeaders = headers,
---       reqBody = body
---     }
-
-type DecodedPath = ([Data.Text], Query)
+type DecodedPath = ([Text], Query)
 
 data Request = Request
   { reqMethod :: Method,
     reqPath :: DecodedPath,
     reqHeaders :: RequestHeaders,
-    reqBody :: Data.Text
+    reqBody :: Text
   }
+
+createRequest :: Method -> DecodedPath -> RequestHeaders -> Text -> Request
+createRequest = Request
 
 data Response = Response
   { resStatusCode :: Status,
     resHeaders :: ResponseHeaders,
-    resBody :: Data.Text
+    resBody :: Text
   }
 
-defaultHeaders :: Data.Text -> [Header]
-defaultHeaders body = [(hContentType, "text/plain"), (hContentLength, C8.pack (show (Data.length body))), (hConnection, "close")]
+createResponse :: Status -> ResponseHeaders -> Text -> Response
+createResponse = Response
 
-http200 :: Data.Text -> Response
+encodeResponse :: Response -> BS.ByteString
+encodeResponse (Response status headers body) =
+  let statusLine = encodeStatusLine status
+      headerLines = encodeHeaders headers
+      bodyBytes = TE.encodeUtf8 body
+   in BS.concat
+        [ statusLine,
+          C8.pack "\r\n",
+          BS.concat headerLines,
+          C8.pack "\r\n",
+          bodyBytes
+        ]
+
+encodeStatusLine :: Status -> BS.ByteString
+encodeStatusLine status =
+  C8.pack $ "HTTP/1.1 " ++ show (statusCode status) ++ " " ++ C8.unpack (statusMessage status)
+
+encodeHeaders :: ResponseHeaders -> [BS.ByteString]
+encodeHeaders = map encodeHeader
+
+encodeHeader :: Header -> BS.ByteString
+encodeHeader (name, value) =
+  CI.original name <> ": " <> value <> "\r\n"
+
+defaultHeaders :: Text -> [Header]
+defaultHeaders body = [(hContentType, "text/plain"), (hContentLength, C8.pack (show (Data.Text.length body))), (hConnection, "close")]
+
+http200 :: Text -> Response
 http200 body =
   Response
     { resStatusCode = ok200,
@@ -41,7 +65,7 @@ http200 body =
       resBody = body
     }
 
-httpErr :: Status -> Data.Text -> Response
+httpErr :: Status -> Text -> Response
 httpErr status body =
   Response
     { resStatusCode = status,
