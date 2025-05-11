@@ -1,17 +1,21 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Handler where
+module Handler
+  ( Handler,
+    createHandler,
+  )
+where
 
-import Common (DecodedPath, createRequest, encodeResponse)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.CaseInsensitive as CI
-import Data.Maybe (mapMaybe)
-import Data.Text (pack)
+import Data.Maybe (fromMaybe, mapMaybe)
 import qualified Data.Text.Encoding as TE
 import Network.HTTP.Types (Header, Method, RequestHeaders, decodePath)
 import Network.Socket (Socket, close)
 import Network.Socket.ByteString (recv, sendAll)
+import Request (DecodedPath, createRequest)
+import Response (encodeResponse)
 import Router (Router, matchRoute)
 
 type Handler = Socket -> IO ()
@@ -20,9 +24,10 @@ createHandler :: Router -> Socket -> IO ()
 createHandler router sock = do
   msg <- recv sock 4096
   let (bs_headers, bs_body) = splitHeadersAndBody msg
-  let (method, path) = case parseRequestLine bs_headers of
-        Just result -> result
-        Nothing -> ("GET", ([pack "error"], []))
+  let (method, path) =
+        Data.Maybe.fromMaybe
+          ("GET", (["error"], []))
+          (parseRequestLine bs_headers)
 
   let headers = parseHeaders bs_headers
   let body = TE.decodeUtf8 bs_body

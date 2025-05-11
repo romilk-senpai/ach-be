@@ -2,21 +2,14 @@
 
 module Main where
 
-import Common (http200, resHeaders)
+import Common (http200)
 import qualified Data.Map.Strict as Map
 import qualified Data.Text as T
 import Handler
+import Handlers.Home (homeHandler)
+import Middleware.Cors (corsMiddleware)
 import Router
 import qualified Server (run)
-
-corsMiddleware :: Middleware
-corsMiddleware next req = do
-  res <- next req
-  let updatedHeaders = ("Access-Control-Allow-Origin", "*") : resHeaders res
-  return $ res {resHeaders = updatedHeaders}
-
-homeHandler :: HandlerFn
-homeHandler _ = return $ http200 (T.pack "Home")
 
 submitHandler :: HandlerFn
 submitHandler _ = return $ http200 (T.pack "submit")
