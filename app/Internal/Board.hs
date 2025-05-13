@@ -20,6 +20,7 @@ data Board = Board
 
 data BoardDTO = BoardDTO
   { id :: Int,
-    name :: Text
+    name :: Text,
+    category :: Int
   }
   deriving (Generic, ToJSON)

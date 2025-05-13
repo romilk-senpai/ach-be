@@ -71,7 +71,8 @@ library
         text,
         containers,
         http-types,
-        case-insensitive
+        case-insensitive,
+        aeson
 
     -- Directories containing source files.
     hs-source-dirs:   src

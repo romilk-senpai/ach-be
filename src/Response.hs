@@ -2,7 +2,6 @@
 
 module Response
   ( Response (..),
-    createResponse,
     encodeResponse,
   )
 where
@@ -10,24 +9,19 @@ where
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.CaseInsensitive as CI
-import Data.Text (Text)
-import qualified Data.Text.Encoding as TE
 import Network.HTTP.Types
 
 data Response = Response
   { resStatusCode :: Status,
     resHeaders :: ResponseHeaders,
-    resBody :: Text
+    resBody :: BS.ByteString
   }
-
-createResponse :: Status -> ResponseHeaders -> Text -> Response
-createResponse = Response
 
 encodeResponse :: Response -> BS.ByteString
 encodeResponse (Response status headers body) =
   let statusLine = encodeStatusLine status
       headerLines = encodeHeaders headers
-      bodyBytes = TE.encodeUtf8 body
+      bodyBytes = body
    in BS.concat
         [ statusLine,
           C8.pack "\r\n",

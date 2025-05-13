@@ -49,4 +49,4 @@ matchRoute (Router rs _) routeKey =
   fromMaybe errorHandler (Map.lookup routeKey rs)
 
 errorHandler :: HandlerFn
-errorHandler _ = pure (http200 (T.pack "Poshel nahui"))
+errorHandler _ = pure (http200 "Poshel nahui")
