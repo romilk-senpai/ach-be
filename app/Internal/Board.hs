@@ -32,4 +32,4 @@ data BoardDTO = BoardDTO
   deriving (Generic, ToJSON)
 
 boardToDTO :: Board -> BoardDTO
-boardToDTO (Board id name cat) = BoardDTO id name cat
+boardToDTO (Board bId bName bCat) = BoardDTO bId bName bCat

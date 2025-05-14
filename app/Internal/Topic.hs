@@ -24,7 +24,7 @@ data Topic = Topic
 data TopicDTO = TopicDTO
   { id :: Int,
     title :: Text,
-    postCount :: Int,
-    created :: UTCTime
+    created :: UTCTime,
+    author :: Maybe Text
   }
   deriving (Generic, ToJSON)

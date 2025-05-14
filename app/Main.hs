@@ -3,7 +3,7 @@
 module Main where
 
 import qualified Data.Map.Strict as Map
-import Database.PostgreSQL.Simple (Connection, connectPostgreSQL)
+import Database.PostgreSQL.Simple (connectPostgreSQL)
 import Handler
 import Handlers.Home (homeHandler)
 import Internal.Board.Handlers (getAllBoards)
