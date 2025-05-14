@@ -92,10 +92,13 @@ executable ach
                       Handlers.Home,
                       Internal.Board,
                       Internal.Board.Handlers,
+                      Internal.Board.Storage,
                       Internal.Topic,
                       Internal.Topic.Handlers,
+                      Internal.Topic.Storage,
                       Internal.Post,
-                      Internal.Post.Handlers
+                      Internal.Post.Handlers,
+                      Internal.Post.Storage
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
@@ -107,7 +110,11 @@ executable ach
         text,
         containers,
         time,
-        aeson
+        aeson,
+        beam-core,
+        beam-postgres,
+        beam-migrate,
+        postgresql-simple
 
     -- Directories containing source files.
     hs-source-dirs:   app
