@@ -88,7 +88,8 @@ executable ach
     main-is:          Main.hs
 
     -- Modules included in this executable, other than Main.
-    other-modules:    Middleware.Cors,
+    other-modules:    AppEnv,
+                      Middleware.Cors,
                       Handlers.Home,
                       Internal.Board,
                       Internal.Board.Handlers,
@@ -111,9 +112,6 @@ executable ach
         containers,
         time,
         aeson,
-        beam-core,
-        beam-postgres,
-        beam-migrate,
         postgresql-simple
 
     -- Directories containing source files.
