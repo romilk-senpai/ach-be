@@ -12,11 +12,11 @@ module Router
   )
 where
 
-import Common (http200)
+import Common (httpErr)
 import qualified Data.Map.Strict as Map
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
-import Network.HTTP.Types (Method)
+import Network.HTTP.Types (Method, notFound404)
 import Request (Request)
 import Response (Response)
 
@@ -49,4 +49,4 @@ matchRoute (Router rs _) routeKey =
   fromMaybe errorHandler (Map.lookup routeKey rs)
 
 errorHandler :: HandlerFn
-errorHandler _ = pure (http200 "Poshel nahui")
+errorHandler _ = pure (httpErr notFound404 "Poshel nahui")
