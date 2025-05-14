@@ -13,6 +13,7 @@ run host port handler = withSocketsDo $ do
       (Just port)
   let serveraddr = head addrinfos
   sock <- socket (addrFamily serveraddr) Stream defaultProtocol
+  setSocketOption sock ReuseAddr 1
   bind sock (addrAddress serveraddr)
   listen sock 1
   putStrLn $ "Listening on " ++ host ++ ":" ++ port ++ "..."

@@ -108,10 +108,12 @@ executable ach
     build-depends:
         ach,
         base,
+        bytestring,
         text,
         containers,
         time,
         aeson,
+        http-types,
         postgresql-simple
 
     -- Directories containing source files.

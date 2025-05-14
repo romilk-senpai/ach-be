@@ -2,15 +2,16 @@
 
 module Main where
 
+import AppEnv (AppEnv (..))
 import qualified Data.Map.Strict as Map
 import Database.PostgreSQL.Simple (connectPostgreSQL)
 import Handler
 import Handlers.Home (homeHandler)
 import Internal.Board.Handlers (getAllBoards)
+import Internal.Topic.Handlers (getBoardTopics)
 import Middleware.Cors (corsMiddleware)
 import Router
 import qualified Server (run)
-import AppEnv (AppEnv(..))
 
 main :: IO ()
 main = do
@@ -18,13 +19,14 @@ main = do
   let port = "3000"
 
   conn <- connectPostgreSQL "host=localhost port=5432 user=postgres password=postgres dbname=ach_db"
-  let appEnv = AppEnv conn
+  let env = AppEnv conn
 
   let router =
         addRoute ("GET", []) [] homeHandler $
-          addRoute ("GET", ["getAllBoards"]) [] (getAllBoards appEnv) $
-            addMiddleware corsMiddleware $
-              Router Map.empty []
+          addRoute ("GET", ["boards"]) [] (getAllBoards env) $
+            addRoute ("GET", ["topics"]) [] (getBoardTopics env) $
+              addMiddleware corsMiddleware $
+                Router Map.empty []
 
   let handler = Handler.createHandler router
 

@@ -10,7 +10,6 @@ where
 
 import Data.Aeson (ToJSON)
 import Data.Text (Text)
-import Database.PostgreSQL.Simple (FromRow)
 import Database.PostgreSQL.Simple.FromRow (FromRow (..), field)
 import GHC.Generics (Generic)
 
