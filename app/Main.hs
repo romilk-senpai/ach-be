@@ -6,12 +6,12 @@ import AppEnv (AppEnv (..))
 import qualified Data.Map.Strict as Map
 import Database.PostgreSQL.Simple (connectPostgreSQL)
 import Handler
-import Handlers.Home (homeHandler)
 import Internal.Board.Handlers (getAllBoards)
+import Internal.Post.Handlers (getTopicPosts)
 import Internal.Topic.Handlers (getBoardTopics)
 import Middleware.Cors (corsMiddleware)
 import Router
-import qualified Server (run)
+import Server (run)
 
 main :: IO ()
 main = do
@@ -22,9 +22,9 @@ main = do
   let env = AppEnv conn
 
   let router =
-        addRoute ("GET", []) [] homeHandler $
-          addRoute ("GET", ["boards"]) [] (getAllBoards env) $
-            addRoute ("GET", ["topics"]) [] (getBoardTopics env) $
+        addRoute ("GET", ["boards"]) [] (getAllBoards env) $
+          addRoute ("GET", ["topics"]) [] (getBoardTopics env) $
+            addRoute ("GET", ["posts"]) [] (getTopicPosts env) $
               addMiddleware corsMiddleware $
                 Router Map.empty []
 

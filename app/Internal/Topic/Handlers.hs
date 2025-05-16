@@ -24,7 +24,7 @@ getBoardTopics env req = do
       queryParams = snd (reqPath req)
   case extractBoardId queryParams of
     Just boardId -> do
-      topics <- query conn "SELECT id, board_id, title, created_at, author FROM topics WHERE board_id = ?" (Only boardId)
+      topics <- query conn "SELECT * FROM topics WHERE board_id = ?" (Only boardId)
       let dtos = map topicToDTO (topics :: [Topic])
       return $ httpJSON dtos
     Nothing ->
