@@ -4,6 +4,8 @@ module Main where
 
 import AppEnv (AppEnv (..))
 import qualified Data.Map.Strict as Map
+import qualified Data.Maybe
+import Data.String (fromString)
 import Database.PostgreSQL.Simple (connectPostgreSQL)
 import Handler
 import Internal.Board.Handlers (getAllBoards)
@@ -12,13 +14,19 @@ import Internal.Topic.Handlers (getBoardTopics)
 import Middleware.Cors (corsMiddleware)
 import Router
 import Server (run)
+import System.Environment (lookupEnv)
 
 main :: IO ()
 main = do
-  let host = "127.0.0.1"
-  let port = "3000"
+  let host = "0.0.0.0"
+  let port = "8080"
 
-  conn <- connectPostgreSQL "host=localhost port=5432 user=postgres password=postgres dbname=ach_db"
+  maybeUrl <- lookupEnv "DATABASE_URL"
+  let connStr = Data.Maybe.fromMaybe "host=localhost port=5432 user=postgres password=postgres dbname=ach_db" maybeUrl
+  conn <- connectPostgreSQL (fromString connStr)
+
+  putStrLn connStr
+
   let env = AppEnv conn
 
   let router =
