@@ -22,21 +22,26 @@ data Post = Post
   { postId :: Int,
     postThreadId :: Int,
     postCreated :: UTCTime,
+    postTopic :: Maybe Text,
     postAuthor :: Maybe Text,
     postContent :: Text
   }
   deriving (Show, Eq)
 
 instance FromRow Post where
-  fromRow = Post <$> field <*> field <*> field <*> field <*> field
+  fromRow = Post <$> field <*> field <*> field <*> field <*> field <*> field
 
 data PostDTO = PostDTO
   { id :: Int,
     created :: UTCTime,
+    topic :: Maybe Text,
     author :: Maybe Text,
     content :: Text
   }
   deriving (Generic, ToJSON)
+
+postToDTO :: Post -> PostDTO
+postToDTO (Post pId _ pCreated pTopic pAuthor pContent) = PostDTO pId pCreated pTopic pAuthor pContent
 
 data PostBody = PostBody
   { bodyAuthor :: Maybe Text,
@@ -50,6 +55,3 @@ instance FromJSON PostBody where
       defaultOptions
         { fieldLabelModifier = drop 4
         }
-
-postToDTO :: Post -> PostDTO
-postToDTO (Post pId _ pCreated pAuthor pContent) = PostDTO pId pCreated pAuthor pContent

@@ -3,6 +3,7 @@
 module Middleware.Logger (loggerMiddleware) where
 
 import qualified Data.ByteString.Char8 as C8
+import Data.List (intercalate)
 import qualified Data.Text as T
 import Request (DecodedPath, Request (..))
 import Router
@@ -14,14 +15,9 @@ loggerMiddleware next req = do
   return res
 
 printDecodedPath :: DecodedPath -> IO ()
-printDecodedPath (segments, query) = do
-  putStrLn "Path segments:"
-  mapM_ (putStrLn . T.unpack) segments
-
-  putStrLn "Query params:"
-  mapM_ printQueryParam query
-  where
-    printQueryParam (keyBS, mValBS) = do
-      let key = C8.unpack keyBS
-          val = maybe "" C8.unpack mValBS
-      putStrLn $ key ++ " = " ++ val
+printDecodedPath (segments, query) =
+  putStrLn $
+    "[INFO]: REQUEST path: "
+      ++ intercalate "/" (map T.unpack segments)
+      ++ ", params: "
+      ++ intercalate "; " [C8.unpack k ++ "=" ++ maybe "" C8.unpack v | (k, v) <- query]

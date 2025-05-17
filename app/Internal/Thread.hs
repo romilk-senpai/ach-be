@@ -4,46 +4,47 @@
 module Internal.Thread
   ( Thread (..),
     ThreadDTO (..),
-    threadToDTO,
+    ThreadBody (..),
     createThreadDTO,
   )
 where
 
 import AppEnv (AppEnv)
-import Data.Aeson (ToJSON)
-import Data.Text (Text)
-import Data.Time (UTCTime)
+import Data.Aeson (Options (fieldLabelModifier), ToJSON, defaultOptions)
+import Data.Aeson.Types (FromJSON (parseJSON))
+import qualified Data.Aeson.Types as Aeson
 import Database.PostgreSQL.Simple.FromRow (FromRow (..), field)
 import GHC.Generics (Generic)
-import Internal.Post (PostDTO)
+import Internal.Post (PostBody, PostDTO)
 import Internal.Post.Handlers (getThreadPreview)
 
 data Thread = Thread
   { threadId :: Int,
-    threadBoardId :: Int,
-    threadTitle :: Text,
-    threadCreated :: UTCTime,
-    threadAuthor :: Maybe Text
+    threadBoardId :: Int
   }
   deriving (Show, Eq)
 
 instance FromRow Thread where
-  fromRow = Thread <$> field <*> field <*> field <*> field <*> field
+  fromRow = Thread <$> field <*> field
 
 data ThreadDTO = ThreadDTO
-  { id :: Int,
-    title :: Text,
-    created :: UTCTime,
-    author :: Maybe Text,
-    previewPosts :: [PostDTO]
+  { previewPosts :: [PostDTO]
   }
   deriving (Generic, ToJSON)
 
 createThreadDTO :: AppEnv -> Thread -> IO ThreadDTO
-createThreadDTO env (Thread tId _ tTitle tCreated tAuthor) = do
+createThreadDTO env (Thread tId _) = do
   posts <- getThreadPreview env tId
-  return $ ThreadDTO tId tTitle tCreated tAuthor posts
+  return $ ThreadDTO posts
 
-threadToDTO :: Thread -> ThreadDTO
-threadToDTO (Thread tId _ tTitle tCreated tAuthor) = do
-  ThreadDTO tId tTitle tCreated tAuthor []
+data ThreadBody = ThreadBody
+  { bodyOpPost :: PostBody
+  }
+  deriving (Generic, Show)
+
+instance FromJSON ThreadBody where
+  parseJSON =
+    Aeson.genericParseJSON
+      defaultOptions
+        { fieldLabelModifier = drop 4
+        }
