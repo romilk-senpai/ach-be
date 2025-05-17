@@ -60,4 +60,4 @@ createPost env req = do
           return $ http200 ""
         Nothing ->
           return $ httpErr badRequest400 "Invalid threadId (poshel nahui)"
-    Left _ -> return $ httpErr badRequest400 "poshel nahui 2"
+    Left _ -> return $ httpErr badRequest400 "Invalid request body (poshel nahui)"
