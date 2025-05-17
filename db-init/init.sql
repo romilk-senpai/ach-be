@@ -16,14 +16,13 @@ CREATE TABLE boards (
   slug TEXT NOT NULL
 );
 
-INSERT INTO boards (name, category_id)
+INSERT INTO boards (name, category_id, slug)
 VALUES
-  ('Anime & Manga', 1),
-  ('Anime/Cute', 1),
-  ('Hentai', 1),
-  ('Video Games', 2),
-  ('Science & Math', 3),
-  ('Toys', 3);
+  ('Anime & Manga', 1, 'a'),
+  ('Anime/Cute', 1, 'c'),
+  ('Video Games', 2, 'v'),
+  ('Science & Math', 3, 'vg'),
+  ('Toys', 3, 'toy');
 
 CREATE TABLE threads (
   id SERIAL PRIMARY KEY,
