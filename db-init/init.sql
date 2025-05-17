@@ -1,16 +1,29 @@
+CREATE TABLE categories (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL
+);
+
+INSERT INTO categories (name)
+VALUES
+  ('Japanese Culture'),
+  ('Video Games'),
+  ('Interests')
+
 CREATE TABLE boards (
   id SERIAL PRIMARY KEY,
   name TEXT NOT NULL,
-  category INT NOT NULL
+  category_id INT NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+  slug TEXT NOT NULL
 );
 
-INSERT INTO boards (name, category)
+INSERT INTO boards (name, category_id)
 VALUES
   ('Anime & Manga', 1),
   ('Anime/Cute', 1),
   ('Hentai', 1),
-  ('Science & Math', 2),
-  ('Toys', 2);
+  ('Video Games', 2),
+  ('Science & Math', 3),
+  ('Toys', 3);
 
 CREATE TABLE threads (
   id SERIAL PRIMARY KEY,
