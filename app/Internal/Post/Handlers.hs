@@ -57,8 +57,7 @@ createPost env req = do
           let author = bodyAuthor pBody
               content = bodyContent pBody
           [post] <- query conn "INSERT INTO posts (thread_id, author, content) VALUES (?, ?, ?) RETURNING id, thread_id, created_at, topic, author, content" (threadId, author, content)
-          let dto = postToDTO post
-          return $ httpJSON dto
+          return $ httpJSON (postToDTO post)
         Nothing ->
           return $ httpErr badRequest400 "Invalid threadId (poshel nahui)"
     Left _ -> return $ httpErr badRequest400 "Invalid request body (poshel nahui)"
