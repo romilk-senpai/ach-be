@@ -40,8 +40,6 @@ createHandler router sock = do
   response <- handler request
   let bsResponse = encodeResponse response
 
-  C8.putStrLn bsResponse
-
   sendAll sock bsResponse
   close sock
 
