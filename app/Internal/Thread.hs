@@ -27,7 +27,7 @@ data Thread = Thread
 instance FromRow Thread where
   fromRow = Thread <$> field <*> field
 
-data ThreadDTO = ThreadDTO
+newtype ThreadDTO = ThreadDTO
   { previewPosts :: [PostDTO]
   }
   deriving (Generic, ToJSON)
@@ -37,7 +37,7 @@ createThreadDTO env (Thread tId _) = do
   posts <- getThreadPreview env tId
   return $ ThreadDTO posts
 
-data ThreadBody = ThreadBody
+newtype ThreadBody = ThreadBody
   { bodyOpPost :: PostBody
   }
   deriving (Generic, Show)

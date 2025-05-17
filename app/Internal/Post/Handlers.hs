@@ -8,13 +8,13 @@ module Internal.Post.Handlers
 where
 
 import AppEnv (AppEnv (..))
-import Common (http200, httpErr, httpJSON)
+import Common (httpErr, httpJSON)
 import Data.Aeson (eitherDecode)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text.Encoding as TE
-import Database.PostgreSQL.Simple (execute, query)
+import Database.PostgreSQL.Simple (query)
 import Database.PostgreSQL.Simple.Types (Only (Only))
 import Internal.Post (Post (..), PostBody (..), PostDTO, postToDTO)
 import Network.HTTP.Types (badRequest400)
@@ -56,8 +56,9 @@ createPost env req = do
         Just threadId -> do
           let author = bodyAuthor pBody
               content = bodyContent pBody
-          _ <- execute conn "INSERT INTO posts (thread_id, author, content) VALUES (?, ?, ?)" (threadId, author, content)
-          return $ http200 ""
+          [post] <- query conn "INSERT INTO posts (thread_id, author, content) VALUES (?, ?, ?) RETURNING id, thread_id, created_at, topic, author, content" (threadId, author, content)
+          let dto = postToDTO post
+          return $ httpJSON dto
         Nothing ->
           return $ httpErr badRequest400 "Invalid threadId (poshel nahui)"
     Left _ -> return $ httpErr badRequest400 "Invalid request body (poshel nahui)"
