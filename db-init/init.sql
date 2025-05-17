@@ -7,7 +7,7 @@ INSERT INTO categories (name)
 VALUES
   ('Japanese Culture'),
   ('Video Games'),
-  ('Interests')
+  ('Interests');
 
 CREATE TABLE boards (
   id SERIAL PRIMARY KEY,

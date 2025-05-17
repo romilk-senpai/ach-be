@@ -10,6 +10,6 @@ import Router (HandlerFn)
 
 getAllBoards :: AppEnv -> HandlerFn
 getAllBoards env _req = do
-  boards <- query_ (dbConn env) "SELECT id, name, category FROM boards"
+  boards <- query_ (dbConn env) "SELECT * FROM boards"
   let dtos = map boardToDTO (boards :: [Board])
   return $ httpJSON dtos
