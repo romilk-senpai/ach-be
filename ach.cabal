@@ -93,6 +93,7 @@ executable ach
                       Middleware.Logger,
                       Internal.BoardInfo,
                       Internal.BoardInfo.Handlers,
+                      Internal.BoardInfo.Storage,
                       Internal.Board,
                       Internal.Board.Handlers,
                       Internal.Board.Storage,
