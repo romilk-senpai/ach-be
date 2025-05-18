@@ -16,7 +16,7 @@ import qualified Data.Aeson.Types as Aeson
 import Database.PostgreSQL.Simple.FromRow (FromRow (..), field)
 import GHC.Generics (Generic)
 import Internal.Post (PostBody, PostDTO)
-import Internal.Post.Handlers (getThreadLastReplies)
+import Internal.Post.Storage (getThreadLastReplies)
 
 data Thread = Thread
   { threadId :: Int,

@@ -9,11 +9,10 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text.Encoding as TE
-import Database.PostgreSQL.Simple (execute, query)
-import Database.PostgreSQL.Simple.Types (Only (Only))
 import Internal.Post (PostBody (..))
-import Internal.Thread (Thread (..), ThreadBody (bodyOpPost), createThreadDTO)
+import Internal.Thread (ThreadBody (bodyOpPost))
 import Internal.Thread.Storage (getThreads)
+import qualified Internal.Thread.Storage as Storage
 import Network.HTTP.Types (badRequest400)
 import Request (Request (..))
 import Router (HandlerFn)
@@ -35,7 +34,6 @@ getBoardThreads env req = do
 
 createThread :: AppEnv -> HandlerFn
 createThread env req = do
-  let conn = dbConn env
   let queryParams = snd (reqPath req)
       b = reqBody req
   let result = eitherDecode (BL.fromStrict (TE.encodeUtf8 b)) :: Either String ThreadBody
@@ -43,13 +41,11 @@ createThread env req = do
     Right pBody -> do
       case extractBoardId queryParams of
         Just boardId -> do
-          [thread] <- query conn "INSERT INTO threads (board_id) VALUES (?) RETURNING id, board_id" (Only boardId) :: IO [Thread]
           let opPost = bodyOpPost pBody
-          let author = bodyAuthor opPost
-          let content = bodyContent opPost
-          let tId = threadId thread
-          _ <- execute conn "INSERT INTO posts (thread_id, author, content) VALUES (?, ?, ?)" (tId, author, content)
-          dto <- createThreadDTO env thread
+              subject = bodySubject opPost
+              author = bodyAuthor opPost
+              content = bodyContent opPost
+          dto <- Storage.createThread env boardId subject author content
           return $ httpJSON dto
         Nothing ->
           return $ httpErr badRequest400 "Invalid threadId (poshel nahui)"
