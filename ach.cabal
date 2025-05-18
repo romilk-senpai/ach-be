@@ -91,6 +91,8 @@ executable ach
     other-modules:    AppEnv,
                       Middleware.Cors,
                       Middleware.Logger,
+                      Internal.BoardInfo,
+                      Internal.BoardInfo.Handlers,
                       Internal.Board,
                       Internal.Board.Handlers,
                       Internal.Board.Storage,
@@ -99,7 +101,6 @@ executable ach
                       Internal.Thread.Storage,
                       Internal.Post,
                       Internal.Post.Handlers,
-                      Internal.Post.Storage
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:

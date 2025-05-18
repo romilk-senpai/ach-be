@@ -8,7 +8,8 @@ import qualified Data.Maybe
 import Data.String (fromString)
 import Database.PostgreSQL.Simple (connectPostgreSQL)
 import Handler
-import Internal.Board.Handlers (getAllBoards)
+import Internal.Board.Handlers (getBoard)
+import Internal.BoardInfo.Handlers (getBoardInfo)
 import Internal.Post.Handlers (createPost, getThreadPosts)
 import Internal.Thread.Handlers (createThread, getBoardThreads)
 import Middleware.Cors (corsMiddleware)
@@ -31,14 +32,15 @@ main = do
   let env = AppEnv conn
 
   let router =
-        addRoute ("GET", ["boards"]) [] (getAllBoards env) $
-          addRoute ("GET", ["threads"]) [] (getBoardThreads env) $
-            addRoute ("POST", ["createThread"]) [] (createThread env) $
-              addRoute ("GET", ["posts"]) [] (getThreadPosts env) $
-                addRoute ("POST", ["createPost"]) [] (createPost env) $
-                  addMiddleware corsMiddleware $
-                    addMiddleware loggerMiddleware $
-                      Router Map.empty []
+        addRoute ("GET", ["boards"]) [] (getBoardInfo env) $
+          addRoute ("GET", ["board"]) [] (getBoard env) $
+            addRoute ("GET", ["threads"]) [] (getBoardThreads env) $
+              addRoute ("POST", ["createThread"]) [] (createThread env) $
+                addRoute ("GET", ["posts"]) [] (getThreadPosts env) $
+                  addRoute ("POST", ["createPost"]) [] (createPost env) $
+                    addMiddleware corsMiddleware $
+                      addMiddleware loggerMiddleware $
+                        Router Map.empty []
 
   let handler = Handler.createHandler router
 

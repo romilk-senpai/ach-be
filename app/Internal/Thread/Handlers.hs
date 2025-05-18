@@ -13,6 +13,7 @@ import Database.PostgreSQL.Simple (execute, query)
 import Database.PostgreSQL.Simple.Types (Only (Only))
 import Internal.Post (PostBody (..))
 import Internal.Thread (Thread (..), ThreadBody (bodyOpPost), createThreadDTO)
+import Internal.Thread.Storage (getThreads)
 import Network.HTTP.Types (badRequest400)
 import Request (Request (..))
 import Router (HandlerFn)
@@ -24,12 +25,10 @@ extractBoardId params =
 
 getBoardThreads :: AppEnv -> HandlerFn
 getBoardThreads env req = do
-  let conn = dbConn env
-      queryParams = snd (reqPath req)
+  let queryParams = snd (reqPath req)
   case extractBoardId queryParams of
     Just boardId -> do
-      threads <- query conn "SELECT * FROM threads WHERE board_id = ?" (Only boardId)
-      dtos <- mapM (createThreadDTO env) (threads :: [Thread])
+      dtos <- getThreads env boardId
       return $ httpJSON dtos
     Nothing ->
       return $ httpErr badRequest400 "Invalid boardId (poshel nahui)"

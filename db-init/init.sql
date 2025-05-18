@@ -13,16 +13,17 @@ CREATE TABLE boards (
   id SERIAL PRIMARY KEY,
   name TEXT NOT NULL,
   category_id INT NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
-  slug TEXT NOT NULL
+  slug TEXT NOT NULL,
+  description TEXT NOT NULL
 );
 
-INSERT INTO boards (name, category_id, slug)
+INSERT INTO boards (name, category_id, slug, description)
 VALUES
-  ('Anime & Manga', 1, 'a'),
-  ('Anime/Cute', 1, 'c'),
-  ('Video Games', 2, 'v'),
-  ('Science & Math', 3, 'vg'),
-  ('Toys', 3, 'toy');
+  ('Anime & Manga', 1, 'a', 'Anime & Manga'),
+  ('Anime/Cute', 1, 'c', 'Anime/Cute'),
+  ('Video Games', 2, 'v', 'Video Games'),
+  ('Science & Math', 3, 'vg', 'Science & Math'),
+  ('Toys', 3, 'toy', 'Toys');
 
 CREATE TABLE threads (
   id SERIAL PRIMARY KEY,
