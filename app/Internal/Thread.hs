@@ -16,7 +16,7 @@ import qualified Data.Aeson.Types as Aeson
 import Database.PostgreSQL.Simple.FromRow (FromRow (..), field)
 import GHC.Generics (Generic)
 import Internal.Post (PostBody, PostDTO)
-import Internal.Post.Storage (getThreadLastReplies)
+import qualified Internal.Post.Storage as Storage
 
 data Thread = Thread
   { threadId :: Int,
@@ -27,15 +27,17 @@ data Thread = Thread
 instance FromRow Thread where
   fromRow = Thread <$> field <*> field
 
-newtype ThreadDTO = ThreadDTO
-  { lastReplies :: [PostDTO]
+data ThreadDTO = ThreadDTO
+  { opPost :: PostDTO,
+    lastReplies :: [PostDTO]
   }
   deriving (Generic, ToJSON)
 
 createThreadDTO :: AppEnv -> Thread -> IO ThreadDTO
 createThreadDTO env (Thread tId _) = do
-  posts <- getThreadLastReplies env tId
-  return $ ThreadDTO posts
+  topPost <- Storage.getOpPost env tId
+  posts <- Storage.getThreadLastReplies env tId
+  return $ ThreadDTO topPost posts
 
 newtype ThreadBody = ThreadBody
   { bodyOpPost :: PostBody

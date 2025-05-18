@@ -4,6 +4,7 @@ module Internal.Post.Storage
   ( getThreadPosts,
     getThreadLastReplies,
     createPost,
+    getOpPost,
   )
 where
 
@@ -22,8 +23,14 @@ getThreadPosts env threadId = do
 getThreadLastReplies :: AppEnv -> Int -> IO [PostDTO]
 getThreadLastReplies env threadId = do
   let conn = dbConn env
-  posts <- query conn "SELECT * FROM posts WHERE thread_id = ? ORDER BY id ASC LIMIT 5" (Only threadId)
+  posts <- query conn "SELECT * FROM posts WHERE thread_id = ? ORDER BY id ASC" (Only threadId)
   return $ map postToDTO posts
+
+getOpPost :: AppEnv -> Int -> IO PostDTO
+getOpPost env threadId = do
+  let conn = dbConn env
+  [post] <- query conn "SELECT * FROM posts WHERE thread_id = ? ORDER BY id ASC LIMIT 1" (Only threadId)
+  return $ postToDTO post
 
 createPost :: AppEnv -> Int -> Maybe Data.Text -> Data.Text -> IO PostDTO
 createPost env threadId author content = do
