@@ -16,7 +16,7 @@ import qualified Data.Aeson.Types as Aeson
 import Database.PostgreSQL.Simple.FromRow (FromRow (..), field)
 import GHC.Generics (Generic)
 import Internal.Post (PostBody, PostDTO)
-import Internal.Post.Handlers (getThreadPreview)
+import Internal.Post.Handlers (getThreadLastReplies)
 
 data Thread = Thread
   { threadId :: Int,
@@ -28,13 +28,13 @@ instance FromRow Thread where
   fromRow = Thread <$> field <*> field
 
 newtype ThreadDTO = ThreadDTO
-  { previewPosts :: [PostDTO]
+  { lastReplies :: [PostDTO]
   }
   deriving (Generic, ToJSON)
 
 createThreadDTO :: AppEnv -> Thread -> IO ThreadDTO
 createThreadDTO env (Thread tId _) = do
-  posts <- getThreadPreview env tId
+  posts <- getThreadLastReplies env tId
   return $ ThreadDTO posts
 
 newtype ThreadBody = ThreadBody

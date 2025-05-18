@@ -21,7 +21,7 @@ import GHC.Generics (Generic)
 data Post = Post
   { postId :: Int,
     postThreadId :: Int,
-    postCreated :: UTCTime,
+    postCreatedAt :: UTCTime,
     postTopic :: Maybe Text,
     postAuthor :: Maybe Text,
     postContent :: Text
@@ -33,7 +33,7 @@ instance FromRow Post where
 
 data PostDTO = PostDTO
   { id :: Int,
-    created :: UTCTime,
+    createdAt :: UTCTime,
     topic :: Maybe Text,
     author :: Maybe Text,
     content :: Text

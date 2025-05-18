@@ -2,7 +2,7 @@
 
 module Internal.Post.Handlers
   ( getThreadPosts,
-    getThreadPreview,
+    getThreadLastReplies,
     createPost,
   )
 where
@@ -38,11 +38,11 @@ getThreadPosts env req = do
     Nothing ->
       return $ httpErr badRequest400 "Invalid threadId (poshel nahui)"
 
-getThreadPreview :: AppEnv -> Int -> IO [PostDTO]
-getThreadPreview env threadId = do
+getThreadLastReplies :: AppEnv -> Int -> IO [PostDTO]
+getThreadLastReplies env threadId = do
   let conn = dbConn env
-  threads <- query conn "SELECT * FROM posts WHERE thread_id = ? ORDER BY id DESC LIMIT 5" (Only threadId)
-  return (map postToDTO (threads :: [Post]))
+  posts <- query conn "SELECT * FROM posts WHERE thread_id = ? ORDER BY id ASC LIMIT 5" (Only threadId)
+  return (map postToDTO (posts :: [Post]))
 
 createPost :: AppEnv -> HandlerFn
 createPost env req = do
