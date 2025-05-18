@@ -22,7 +22,7 @@ data Post = Post
   { postId :: Int,
     postThreadId :: Int,
     postCreatedAt :: UTCTime,
-    postTopic :: Maybe Text,
+    postSubject :: Maybe Text,
     postAuthor :: Maybe Text,
     postContent :: Text
   }
@@ -34,17 +34,18 @@ instance FromRow Post where
 data PostDTO = PostDTO
   { id :: Int,
     createdAt :: UTCTime,
-    topic :: Maybe Text,
+    subject :: Maybe Text,
     author :: Maybe Text,
     content :: Text
   }
   deriving (Generic, ToJSON)
 
 postToDTO :: Post -> PostDTO
-postToDTO (Post pId _ pCreated pTopic pAuthor pContent) = PostDTO pId pCreated pTopic pAuthor pContent
+postToDTO (Post pId _ pCreated pSubject pAuthor pContent) = PostDTO pId pCreated pSubject pAuthor pContent
 
 data PostBody = PostBody
-  { bodyAuthor :: Maybe Text,
+  { bodySubject :: Maybe Text,
+    bodyAuthor :: Maybe Text,
     bodyContent :: Text
   }
   deriving (Generic, Show)

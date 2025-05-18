@@ -101,6 +101,7 @@ executable ach
                       Internal.Thread.Storage,
                       Internal.Post,
                       Internal.Post.Handlers,
+                      Internal.Post.Storage,
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:

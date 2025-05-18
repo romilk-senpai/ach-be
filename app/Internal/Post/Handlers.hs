@@ -2,7 +2,6 @@
 
 module Internal.Post.Handlers
   ( getThreadPosts,
-    getThreadLastReplies,
     createPost,
   )
 where
@@ -14,9 +13,8 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text.Encoding as TE
-import Database.PostgreSQL.Simple (query)
-import Database.PostgreSQL.Simple.Types (Only (Only))
-import Internal.Post (Post (..), PostBody (..), PostDTO, postToDTO)
+import Internal.Post (PostBody (..))
+import qualified Internal.Post.Storage as Storage
 import Network.HTTP.Types (badRequest400)
 import Request (Request (..))
 import Router (HandlerFn)
@@ -28,25 +26,16 @@ extractThreadId params =
 
 getThreadPosts :: AppEnv -> HandlerFn
 getThreadPosts env req = do
-  let conn = dbConn env
   let queryParams = snd (reqPath req)
   case extractThreadId queryParams of
     Just threadId -> do
-      posts <- query conn "SELECT * FROM posts WHERE thread_id = ?" (Only threadId)
-      let dtos = map postToDTO (posts :: [Post])
+      dtos <- Storage.getThreadPosts env threadId
       return $ httpJSON dtos
     Nothing ->
       return $ httpErr badRequest400 "Invalid threadId (poshel nahui)"
 
-getThreadLastReplies :: AppEnv -> Int -> IO [PostDTO]
-getThreadLastReplies env threadId = do
-  let conn = dbConn env
-  posts <- query conn "SELECT * FROM posts WHERE thread_id = ? ORDER BY id ASC LIMIT 5" (Only threadId)
-  return (map postToDTO (posts :: [Post]))
-
 createPost :: AppEnv -> HandlerFn
 createPost env req = do
-  let conn = dbConn env
   let queryParams = snd (reqPath req)
       b = reqBody req
   let result = eitherDecode (BL.fromStrict (TE.encodeUtf8 b)) :: Either String PostBody
@@ -56,8 +45,8 @@ createPost env req = do
         Just threadId -> do
           let author = bodyAuthor pBody
               content = bodyContent pBody
-          [post] <- query conn "INSERT INTO posts (thread_id, author, content) VALUES (?, ?, ?) RETURNING id, thread_id, created_at, topic, author, content" (threadId, author, content)
-          return $ httpJSON (postToDTO post)
+          post <- Storage.createPost env threadId author content
+          return $ httpJSON post
         Nothing ->
           return $ httpErr badRequest400 "Invalid threadId (poshel nahui)"
     Left _ -> return $ httpErr badRequest400 "Invalid request body (poshel nahui)"
