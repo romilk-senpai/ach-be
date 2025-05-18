@@ -23,8 +23,13 @@ getThreadPosts env threadId = do
 getThreadLastReplies :: AppEnv -> Int -> IO [PostDTO]
 getThreadLastReplies env threadId = do
   let conn = dbConn env
-  posts <- query conn "SELECT * FROM posts WHERE thread_id = ? ORDER BY id DESC LIMIT 5" (Only threadId)
-  return $ map postToDTO (reverse posts)
+  posts <- query conn "SELECT * FROM posts WHERE thread_id = ? ORDER BY id DESC LIMIT 6" (Only threadId) -- tee hee
+  let p = reverse posts
+      filtered =
+        if length p <= 6
+          then tail p
+          else p
+  return $ map postToDTO filtered
 
 getOpPost :: AppEnv -> Int -> IO PostDTO
 getOpPost env threadId = do
