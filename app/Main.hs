@@ -32,14 +32,14 @@ main = do
   let env = AppEnv conn
 
   let router =
-        addRoute ("GET", ["boards"]) [] (getBoardInfo env) $
-          addRoute ("GET", ["board"]) [] (getBoard env) $
-            addRoute ("GET", ["threads"]) [] (getBoardThreads env) $
-              addRoute ("POST", ["createThread"]) [] (createThread env) $
-                addRoute ("GET", ["posts"]) [] (getThreadPosts env) $
-                  addRoute ("POST", ["createPost"]) [] (createPost env) $
-                    addMiddleware corsMiddleware $
-                      addMiddleware loggerMiddleware $
+        addMiddleware corsMiddleware $
+          addMiddleware loggerMiddleware $
+            addRoute ("GET", "boards") (getBoardInfo env) $
+              addRoute ("GET", "board") (getBoard env) $
+                addRoute ("GET", "threads") (getBoardThreads env) $
+                  addRoute ("POST", "createThread") (createThread env) $
+                    addRoute ("GET", "posts") (getThreadPosts env) $
+                      addRoute ("POST", "createPost") (createPost env) $
                         Router Map.empty []
 
   let handler = Handler.createHandler router

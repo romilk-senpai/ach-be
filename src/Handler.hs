@@ -12,6 +12,8 @@ import Control.Exception.Base (try)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.CaseInsensitive as CI
+import Data.Text (intercalate)
+import qualified Data.Text as Data
 import qualified Data.Text.Encoding as TE
 import Network.HTTP.Types (Header, Method, RequestHeaders, badRequest400, decodePath, internalServerError500)
 import Network.Socket (Socket, close)
@@ -40,7 +42,7 @@ createHandler router sock = do
         Right req -> do
           let method = reqMethod req
           let (segments, _) = reqPath req
-          let handler = matchRoute router (method, segments)
+          let handler = matchRoute router (method, combineWithSlash segments)
 
           responseResult <- try (handler req) :: IO (Either SomeException Response)
           case responseResult of
@@ -52,6 +54,9 @@ createHandler router sock = do
               let bsResponse = encodeResponse response
               sendAll sock bsResponse
               close sock
+
+combineWithSlash :: [Data.Text] -> Data.Text
+combineWithSlash = intercalate "/"
 
 readRequest :: Socket -> IO BS.ByteString
 readRequest sock = go BS.empty

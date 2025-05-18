@@ -8,6 +8,7 @@ module Router
     Router (..),
     addMiddleware,
     addRoute,
+    addRouteMw,
     matchRoute,
   )
 where
@@ -24,7 +25,7 @@ type HandlerFn = Request -> IO Response
 
 type Middleware = HandlerFn -> HandlerFn
 
-type RouteKey = (Method, [T.Text])
+type RouteKey = (Method, T.Text)
 
 type RouteMap = Map.Map RouteKey HandlerFn
 
@@ -36,8 +37,13 @@ data Router = Router
 addMiddleware :: Middleware -> Router -> Router
 addMiddleware mw router = router {middlewares = mw : middlewares router}
 
-addRoute :: RouteKey -> [Middleware] -> HandlerFn -> Router -> Router
-addRoute routeKey routeMiddlewares handler router =
+addRoute :: RouteKey -> HandlerFn -> Router -> Router
+addRoute routeKey handler router =
+  let finalHandler = applyMiddlewares handler (middlewares router)
+   in router {routes = Map.insert routeKey finalHandler (routes router)}
+
+addRouteMw :: RouteKey -> [Middleware] -> HandlerFn -> Router -> Router
+addRouteMw routeKey routeMiddlewares handler router =
   let finalHandler = applyMiddlewares handler (middlewares router ++ routeMiddlewares)
    in router {routes = Map.insert routeKey finalHandler (routes router)}
 
