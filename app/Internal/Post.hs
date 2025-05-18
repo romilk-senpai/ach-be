@@ -12,6 +12,7 @@ where
 import Data.Aeson (FromJSON, Options (fieldLabelModifier), ToJSON)
 import qualified Data.Aeson as Aeson
 import Data.Aeson.Types (defaultOptions)
+import Data.Char (toLower)
 import Data.Text (Text)
 import Data.Time (UTCTime)
 import Database.PostgreSQL.Simple (FromRow)
@@ -54,5 +55,7 @@ instance FromJSON PostBody where
   parseJSON =
     Aeson.genericParseJSON
       defaultOptions
-        { fieldLabelModifier = drop 4
+        { fieldLabelModifier = \s ->
+            let dropped = drop 4 s
+             in toLower (head dropped) : tail dropped
         }
