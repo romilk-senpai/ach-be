@@ -5,6 +5,7 @@ module Request
   )
 where
 
+import Data.ByteString (ByteString)
 import Data.Text (Text)
 import Network.HTTP.Types
 
@@ -14,8 +15,8 @@ data Request = Request
   { reqMethod :: Method,
     reqPath :: DecodedPath,
     reqHeaders :: RequestHeaders,
-    reqBody :: Text
+    reqBody :: ByteString
   }
 
-createRequest :: Method -> DecodedPath -> RequestHeaders -> Text -> Request
+createRequest :: Method -> DecodedPath -> RequestHeaders -> ByteString -> Request
 createRequest = Request

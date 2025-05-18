@@ -8,7 +8,6 @@ import Data.Aeson (eitherDecode)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.ByteString.Lazy as BL
-import qualified Data.Text.Encoding as TE
 import Internal.Post (PostBody (..))
 import Internal.Thread (ThreadBody (bodyOpPost))
 import Internal.Thread.Storage (getThreads)
@@ -36,7 +35,7 @@ createThread :: AppEnv -> HandlerFn
 createThread env req = do
   let queryParams = snd (reqPath req)
       b = reqBody req
-  let result = eitherDecode (BL.fromStrict (TE.encodeUtf8 b)) :: Either String ThreadBody
+  let result = eitherDecode (BL.fromStrict b) :: Either String ThreadBody
   case result of
     Right pBody -> do
       case extractBoardId queryParams of

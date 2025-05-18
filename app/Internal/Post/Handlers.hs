@@ -12,7 +12,6 @@ import Data.Aeson (eitherDecode)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.ByteString.Lazy as BL
-import qualified Data.Text.Encoding as TE
 import Internal.Post (PostBody (..))
 import qualified Internal.Post.Storage as Storage
 import Network.HTTP.Types (badRequest400)
@@ -38,7 +37,7 @@ createPost :: AppEnv -> HandlerFn
 createPost env req = do
   let queryParams = snd (reqPath req)
       b = reqBody req
-  let result = eitherDecode (BL.fromStrict (TE.encodeUtf8 b)) :: Either String PostBody
+  let result = eitherDecode (BL.fromStrict b) :: Either String PostBody
   case result of
     Right pBody -> do
       case extractThreadId queryParams of

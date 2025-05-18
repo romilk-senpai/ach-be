@@ -14,7 +14,6 @@ import qualified Data.ByteString.Char8 as C8
 import qualified Data.CaseInsensitive as CI
 import Data.Text (intercalate)
 import qualified Data.Text as Data
-import qualified Data.Text.Encoding as TE
 import Network.HTTP.Types (Header, Method, RequestHeaders, badRequest400, decodePath, internalServerError500)
 import Network.Socket (Socket, close)
 import Network.Socket.ByteString (recv, sendAll)
@@ -76,8 +75,7 @@ parseRequest bs = do
   let (bs_headers, bs_body) = splitHeadersAndBody bs
   (method, path) <- parseRequestLine bs_headers
   headers <- parseHeaders bs_headers
-  let body = TE.decodeUtf8 bs_body
-  return $ createRequest method path headers body
+  return $ createRequest method path headers bs_body
 
 splitHeadersAndBody :: BS.ByteString -> (BS.ByteString, BS.ByteString)
 splitHeadersAndBody bs =
