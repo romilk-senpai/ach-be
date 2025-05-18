@@ -45,7 +45,8 @@ createPost env req = do
         Just threadId -> do
           let author = bodyAuthor pBody
               content = bodyContent pBody
-          post <- Storage.createPost env threadId author content
+              subject = bodySubject pBody
+          post <- Storage.createPost env threadId subject author content
           return $ httpJSON post
         Nothing ->
           return $ httpErr badRequest400 "Invalid threadId (poshel nahui)"

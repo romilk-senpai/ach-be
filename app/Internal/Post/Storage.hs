@@ -32,8 +32,8 @@ getOpPost env threadId = do
   [post] <- query conn "SELECT * FROM posts WHERE thread_id = ? ORDER BY id ASC LIMIT 1" (Only threadId)
   return $ postToDTO post
 
-createPost :: AppEnv -> Int -> Maybe Data.Text -> Data.Text -> IO PostDTO
-createPost env threadId author content = do
+createPost :: AppEnv -> Int -> Maybe Data.Text -> Maybe Data.Text -> Data.Text -> IO PostDTO
+createPost env threadId subject author content = do
   let conn = dbConn env
-  [post] <- query conn "INSERT INTO posts (thread_id, author, content) VALUES (?, ?, ?) RETURNING id, thread_id, created_at, topic, author, content" (threadId, author, content)
+  [post] <- query conn "INSERT INTO posts (thread_id, subject, author, content) VALUES (?, ?, ?, ?) RETURNING id, thread_id, created_at, subject, author, content" (threadId, subject, author, content)
   return $ postToDTO post

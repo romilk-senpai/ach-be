@@ -39,13 +39,13 @@ CREATE TABLE posts (
   id SERIAL PRIMARY KEY,
   thread_id INT NOT NULL REFERENCES threads(id) ON DELETE CASCADE,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  topic TEXT,
+  subject TEXT,
   author TEXT,
   content TEXT NOT NULL
 );
 
-INSERT INTO posts (thread_id, topic, author, content)
+INSERT INTO posts (thread_id, subject, author, content)
 VALUES
-  (1, 'topic 1', 'ayanokojimode', 'sample post 1'),
-  (2, 'topic 2', 'thorns-1', 'sample post 2');
+  (1, 'subject 1', 'ayanokojimode', 'sample post 1'),
+  (2, 'subject 2', 'thorns-1', 'sample post 2');
 
