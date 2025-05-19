@@ -10,6 +10,7 @@ import Database.PostgreSQL.Simple (connectPostgreSQL)
 import Handler
 import Internal.Board.Handlers (getBoard)
 import Internal.BoardInfo.Handlers (getBoardInfo)
+import Internal.Media.Handlers (uploadMedia)
 import Internal.Post.Handlers (createPost, getThreadPosts)
 import Internal.Thread.Handlers (createThread, getBoardThreads)
 import Middleware.Cors (corsMiddleware)
@@ -32,15 +33,16 @@ main = do
   let env = AppEnv conn
 
   let router =
-        addMiddleware corsMiddleware $
-          addMiddleware loggerMiddleware $
-            addRoute ("GET", "boards") (getBoardInfo env) $
-              addRoute ("GET", "board") (getBoard env) $
-                addRoute ("GET", "threads") (getBoardThreads env) $
-                  addRoute ("POST", "createThread") (createThread env) $
-                    addRoute ("GET", "posts") (getThreadPosts env) $
-                      addRoute ("POST", "createPost") (createPost env) $
-                        Router Map.empty []
+        addRoute ("GET", "boards") (getBoardInfo env) $
+          addRoute ("GET", "board") (getBoard env) $
+            addRoute ("GET", "threads") (getBoardThreads env) $
+              addRoute ("POST", "createThread") (createThread env) $
+                addRoute ("GET", "posts") (getThreadPosts env) $
+                  addRoute ("POST", "createPost") (createPost env) $
+                    addRoute ("POST", "uploadMedia") (uploadMedia env) $
+                      addMiddleware corsMiddleware $
+                        addMiddleware loggerMiddleware $
+                          Router Map.empty []
 
   let handler = Handler.createHandler router
 

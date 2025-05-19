@@ -49,3 +49,9 @@ VALUES
   (1, 'subject 1', 'ayanokojimode', 'sample post 1'),
   (2, 'subject 2', 'thorns-1', 'sample post 2');
 
+CREATE TABLE media (
+  id SERIAL PRIMARY KEY,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  file_name TEXT NOT NULL,
+  file_path TEXT NOT NULL
+);
