@@ -7,61 +7,81 @@ module Handler
 where
 
 import Common (httpErr)
-import Control.Exception (SomeException)
+import Control.Exception (SomeException ())
 import Control.Exception.Base (try)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.CaseInsensitive as CI
 import Data.Text (intercalate)
 import qualified Data.Text as Data
-import Network.HTTP.Types (Header, Method, RequestHeaders, badRequest400, decodePath, internalServerError500)
+import Network.HTTP.Types (Header, Method, RequestHeaders, badRequest400, decodePath, hContentLength, internalServerError500)
 import Network.Socket (Socket, close)
 import Network.Socket.ByteString (recv, sendAll)
-import Request (DecodedPath, Request (..), createRequest)
-import Response (Response, encodeResponse)
+import Request (DecodedPath, createRequest)
+import Response (Response (resStatusCode), encodeResponse)
 import Router (Router, matchRoute)
 
 type Handler = Socket -> IO ()
 
 createHandler :: Router -> Socket -> IO ()
 createHandler router sock = do
-  result <- try $ readRequest sock :: IO (Either SomeException BS.ByteString)
-
-  case result of
-    Left _ -> do
-      putStrLn "Failed to read request"
+  eHeaders <- extractHeaders sock
+  putStrLn "hi"
+  case eHeaders of
+    Left headerErr -> do
+      putStrLn $ "[ERROR]: Failed to read headers: " ++ headerErr
       sendAll sock (encodeResponse (httpErr badRequest400 BS.empty))
       close sock
-    Right bs -> do
-      case parseRequest bs of
-        Left err -> do
-          putStrLn $ "Failed to parse request: " ++ err
-          sendAll sock (encodeResponse (httpErr badRequest400 (C8.pack err)))
+    Right (method, path, headers) -> do
+      case extractContentLength headers of
+        Nothing -> do
+          putStrLn "[ERROR]: Failed to parse content length"
+          sendAll sock (encodeResponse (httpErr badRequest400 BS.empty))
           close sock
-        Right req -> do
-          let method = reqMethod req
-          let (segments, _) = reqPath req
-          let handler = matchRoute router (method, combineWithSlash segments)
-
+        Just contentLength -> do
+          putStrLn "reading body"
+          bodyBs <- readBody sock contentLength
+          putStrLn "read body"
+          let handler = matchRoute router (method, combineWithSlash (fst path))
+              req = createRequest method path headers bodyBs
           responseResult <- try (handler req) :: IO (Either SomeException Response)
           case responseResult of
             Left ex -> do
-              putStrLn $ "Handler exception: " ++ show ex
+              putStrLn $ "[ERROR]: Handler exception: " ++ show ex
               sendAll sock (encodeResponse (httpErr internalServerError500 "Internal Server Error"))
               close sock
             Right response -> do
               let bsResponse = encodeResponse response
+              putStrLn $ "[INFO]: " ++ show (resStatusCode response)
               sendAll sock bsResponse
               close sock
 
 combineWithSlash :: [Data.Text] -> Data.Text
 combineWithSlash = intercalate "/"
 
-readRequest :: Socket -> IO BS.ByteString
-readRequest sock = go BS.empty
+extractContentLength :: RequestHeaders -> Maybe Int
+extractContentLength headers = do
+  len <- lookup hContentLength headers
+  case C8.readInt len of
+    Just (n, _) -> Just n
+    Nothing -> Nothing
+
+extractHeaders :: Socket -> IO (Either String (Method, DecodedPath, RequestHeaders))
+extractHeaders sock = do
+  eBs <- try $ readHeaders sock :: IO (Either SomeException BS.ByteString)
+  case eBs of
+    Left err -> return (Left (show err))
+    Right bs -> do
+      let (bsHeaders, _ ) = splitHeadersAndBody bs
+      case parseHeaders bsHeaders of
+        Left parseErr -> return (Left parseErr)
+        Right headers -> return (Right headers)
+
+readHeaders :: Socket -> IO BS.ByteString
+readHeaders sock = go BS.empty
   where
     go acc = do
-      chunk <- recv sock 4096
+      chunk <- recv sock 1
       if BS.null chunk
         then return acc
         else
@@ -70,18 +90,16 @@ readRequest sock = go BS.empty
                 then return acc'
                 else go acc'
 
-parseRequest :: BS.ByteString -> Either String Request
-parseRequest bs = do
-  let (bs_headers, bs_body) = splitHeadersAndBody bs
-  (method, path) <- parseRequestLine bs_headers
-  headers <- parseHeaders bs_headers
-  return $ createRequest method path headers bs_body
-
-splitHeadersAndBody :: BS.ByteString -> (BS.ByteString, BS.ByteString)
-splitHeadersAndBody bs =
-  let (headers, rest) = BS.breakSubstring "\r\n\r\n" bs
-      body = BS.drop 4 rest
-   in (headers, body)
+parseHeaders :: BS.ByteString -> Either String (Method, DecodedPath, RequestHeaders)
+parseHeaders bs =
+  case parseRequestLine bs of
+    Left err -> Left err
+    Right (method, path) -> do
+      let headerLines = drop 1 (C8.lines bs)
+          parsed = mapM parseHeaderLine headerLines
+       in case parsed of
+            Just headers -> Right (method, path, headers)
+            Nothing -> Left "Broken headers"
 
 parseRequestLine :: BS.ByteString -> Either String (Method, DecodedPath)
 parseRequestLine request =
@@ -92,14 +110,6 @@ parseRequestLine request =
         _ -> Left "Broken request line"
     _ -> Left "Empty reqest"
 
-parseHeaders :: BS.ByteString -> Either String RequestHeaders
-parseHeaders bs =
-  let headerLines = drop 1 (C8.lines bs)
-      parsed = mapM parseHeaderLine headerLines
-   in case parsed of
-        Just hs -> Right hs
-        Nothing -> Left "Broken headers"
-
 parseHeaderLine :: BS.ByteString -> Maybe Header
 parseHeaderLine line =
   case C8.break (== ':') line of
@@ -107,3 +117,31 @@ parseHeaderLine line =
       if BS.null rest
         then Nothing
         else Just (CI.mk name, C8.dropWhile (== ' ') (C8.drop 1 rest))
+
+readBody :: Socket -> Int -> IO BS.ByteString
+readBody sock contentLen = do
+  putStrLn "aaa"
+  headerBytes <- readHeaders sock
+  putStrLn "asd"
+  let (_, initialBody) = splitHeadersAndBody headerBytes
+      already = BS.length initialBody
+      toRead = max 0 (contentLen - already)
+  remaining <- readExact sock toRead
+  return $ headerBytes <> remaining
+
+readExact :: Socket -> Int -> IO BS.ByteString
+readExact _ 0 = return BS.empty
+readExact sock total = go total []
+  where
+    go 0 chunks = return $ BS.concat (reverse chunks)
+    go remaining chunks = do
+      chunk <- recv sock remaining
+      if BS.null chunk
+        then return $ BS.concat (reverse chunks)
+        else go (remaining - BS.length chunk) (chunk : chunks)
+
+splitHeadersAndBody :: BS.ByteString -> (BS.ByteString, BS.ByteString)
+splitHeadersAndBody bs =
+  let (headers, rest) = BS.breakSubstring "\r\n\r\n" bs
+      body = BS.drop 4 rest
+   in (headers, body)

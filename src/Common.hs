@@ -36,9 +36,13 @@ httpErr status body =
     }
 
 httpJSON :: (ToJSON a) => a -> Response
-httpJSON val =
+httpJSON val = do
+  let bl = BL.toStrict (encode val)
   Response
     { resStatusCode = ok200,
-      resHeaders = [("Content-Type", "application/json")],
-      resBody = BL.toStrict (encode val)
+      resHeaders =
+        [ (hContentType, "application/json"),
+          (hContentLength, C8.pack (show (BL.length bl)))
+        ],
+      resBody = bl
     }
