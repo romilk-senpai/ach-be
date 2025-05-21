@@ -26,7 +26,6 @@ type Handler = Socket -> IO ()
 createHandler :: Router -> Socket -> IO ()
 createHandler router sock = do
   eHeaders <- extractHeaders sock
-  putStrLn "hi"
   case eHeaders of
     Left headerErr -> do
       putStrLn $ "[ERROR]: Failed to read headers: " ++ headerErr
@@ -39,9 +38,7 @@ createHandler router sock = do
           sendAll sock (encodeResponse (httpErr badRequest400 BS.empty))
           close sock
         Just contentLength -> do
-          putStrLn "reading body"
           bodyBs <- readBody sock contentLength
-          putStrLn "read body"
           let handler = matchRoute router (method, combineWithSlash (fst path))
               req = createRequest method path headers bodyBs
           responseResult <- try (handler req) :: IO (Either SomeException Response)
@@ -68,14 +65,11 @@ extractContentLength headers = do
 
 extractHeaders :: Socket -> IO (Either String (Method, DecodedPath, RequestHeaders))
 extractHeaders sock = do
-  eBs <- try $ readHeaders sock :: IO (Either SomeException BS.ByteString)
-  case eBs of
-    Left err -> return (Left (show err))
-    Right bs -> do
-      let (bsHeaders, _ ) = splitHeadersAndBody bs
-      case parseHeaders bsHeaders of
-        Left parseErr -> return (Left parseErr)
-        Right headers -> return (Right headers)
+  bs <- readHeaders sock
+  let (bsHeaders, _) = splitHeadersAndBody bs
+  case parseHeaders bsHeaders of
+    Left parseErr -> return (Left parseErr)
+    Right headers -> return (Right headers)
 
 readHeaders :: Socket -> IO BS.ByteString
 readHeaders sock = go BS.empty
@@ -119,19 +113,8 @@ parseHeaderLine line =
         else Just (CI.mk name, C8.dropWhile (== ' ') (C8.drop 1 rest))
 
 readBody :: Socket -> Int -> IO BS.ByteString
-readBody sock contentLen = do
-  putStrLn "aaa"
-  headerBytes <- readHeaders sock
-  putStrLn "asd"
-  let (_, initialBody) = splitHeadersAndBody headerBytes
-      already = BS.length initialBody
-      toRead = max 0 (contentLen - already)
-  remaining <- readExact sock toRead
-  return $ headerBytes <> remaining
-
-readExact :: Socket -> Int -> IO BS.ByteString
-readExact _ 0 = return BS.empty
-readExact sock total = go total []
+readBody _ 0 = return BS.empty
+readBody sock total = go total []
   where
     go 0 chunks = return $ BS.concat (reverse chunks)
     go remaining chunks = do
