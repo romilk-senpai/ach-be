@@ -15,6 +15,7 @@ import qualified Data.CaseInsensitive as CI
 import Data.Text (intercalate)
 import qualified Data.Text as Data
 import Network.HTTP.Types (Header, Method, RequestHeaders, badRequest400, decodePath, hContentLength, internalServerError500)
+import Network.HTTP.Types.Method (methodPost)
 import Network.Socket (Socket, close)
 import Network.Socket.ByteString (recv, sendAll)
 import Request (DecodedPath, createRequest)
@@ -32,26 +33,30 @@ createHandler router sock = do
       sendAll sock (encodeResponse (httpErr badRequest400 BS.empty))
       close sock
     Right (method, path, headers) -> do
-      case extractContentLength headers of
-        Nothing -> do
-          putStrLn "[ERROR]: Failed to parse content length"
-          sendAll sock (encodeResponse (httpErr badRequest400 BS.empty))
+      body <-
+        if method == methodPost
+          then case extractContentLength headers of
+            Nothing -> do
+              putStrLn "[ERROR]: Failed to parse content length"
+              sendAll sock (encodeResponse (httpErr badRequest400 BS.empty))
+              close sock
+              fail "Failed to parse content length"
+            Just contentLength -> readBody sock contentLength
+          else return BS.empty
+
+      let handler = matchRoute router (method, combineWithSlash (fst path))
+          req = createRequest method path headers body
+      responseResult <- try (handler req) :: IO (Either SomeException Response)
+      case responseResult of
+        Left ex -> do
+          putStrLn $ "[ERROR]: Handler exception: " ++ show ex
+          sendAll sock (encodeResponse (httpErr internalServerError500 "Internal Server Error"))
           close sock
-        Just contentLength -> do
-          bodyBs <- readBody sock contentLength
-          let handler = matchRoute router (method, combineWithSlash (fst path))
-              req = createRequest method path headers bodyBs
-          responseResult <- try (handler req) :: IO (Either SomeException Response)
-          case responseResult of
-            Left ex -> do
-              putStrLn $ "[ERROR]: Handler exception: " ++ show ex
-              sendAll sock (encodeResponse (httpErr internalServerError500 "Internal Server Error"))
-              close sock
-            Right response -> do
-              let bsResponse = encodeResponse response
-              putStrLn $ "[INFO]: " ++ show (resStatusCode response)
-              sendAll sock bsResponse
-              close sock
+        Right response -> do
+          let bsResponse = encodeResponse response
+          putStrLn $ "[INFO]: " ++ show (resStatusCode response)
+          sendAll sock bsResponse
+          close sock
 
 combineWithSlash :: [Data.Text] -> Data.Text
 combineWithSlash = intercalate "/"
