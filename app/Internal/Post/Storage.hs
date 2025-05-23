@@ -40,5 +40,5 @@ getOpPost env threadId = do
 createPost :: AppEnv -> Int -> Maybe Data.Text -> Maybe Data.Text -> Data.Text -> IO PostDTO
 createPost env threadId subject author content = do
   let conn = dbConn env
-  [post] <- query conn "INSERT INTO posts (thread_id, subject, author, content) VALUES (?, ?, ?, ?) RETURNING id, thread_id, created_at, subject, author, content" (threadId, subject, author, content)
+  [post] <- query conn "INSERT INTO posts (thread_id, subject, author, content) VALUES (?, ?, ?, ?) RETURNING id, local_id, thread_id, board_id, created_at, subject, author, content" (threadId, subject, author, content)
   return $ postToDTO post

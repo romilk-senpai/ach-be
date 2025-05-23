@@ -23,6 +23,7 @@ data Post = Post
   { postId :: Int,
     postLocalId :: Int,
     postThreadId :: Int,
+    postBoardId :: Int,
     postCreatedAt :: UTCTime,
     postSubject :: Maybe Text,
     postAuthor :: Maybe Text,
@@ -31,7 +32,7 @@ data Post = Post
   deriving (Show, Eq)
 
 instance FromRow Post where
-  fromRow = Post <$> field <*> field <*> field <*> field <*> field <*> field <*> field
+  fromRow = Post <$> field <*> field <*> field <*> field <*> field <*> field <*> field <*> field
 
 data PostDTO = PostDTO
   { id :: Int,
@@ -44,7 +45,7 @@ data PostDTO = PostDTO
   deriving (Generic, ToJSON)
 
 postToDTO :: Post -> PostDTO
-postToDTO (Post pId pLocalId _ pCreated pSubject pAuthor pContent) = PostDTO pId pLocalId pCreated pSubject pAuthor pContent
+postToDTO (Post pId pLocalId _ _ pCreated pSubject pAuthor pContent) = PostDTO pId pLocalId pCreated pSubject pAuthor pContent
 
 data PostBody = PostBody
   { bodySubject :: Maybe Text,
