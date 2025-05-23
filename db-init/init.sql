@@ -37,12 +37,41 @@ VALUES
 
 CREATE TABLE posts (
   id SERIAL PRIMARY KEY,
+  local_id INT NOT NULL,
   thread_id INT NOT NULL REFERENCES threads(id) ON DELETE CASCADE,
+  board_id INT NOT NULL REFERENCES boards(id),
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   subject TEXT,
   author TEXT,
   content TEXT NOT NULL
 );
+
+CREATE UNIQUE INDEX uniq_local_id_per_board ON posts(board_id, local_id);
+
+CREATE OR REPLACE FUNCTION assign_local_post_id()
+RETURNS TRIGGER AS $$
+DECLARE
+  thread_board_id INT;
+  max_local_id INT;
+BEGIN
+  SELECT board_id INTO thread_board_id
+  FROM threads
+  WHERE id = NEW.thread_id;
+
+  NEW.board_id := thread_board_id;
+
+  SELECT COALESCE(MAX(local_id), 0) INTO max_local_id
+  FROM posts WHERE board_id = thread_board_id;
+
+  NEW.local_id := max_local_id + 1;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER set_local_post_id
+BEFORE INSERT ON posts
+FOR EACH ROW
+EXECUTE FUNCTION assign_local_post_id();
 
 INSERT INTO posts (thread_id, subject, author, content)
 VALUES
