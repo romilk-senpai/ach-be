@@ -121,7 +121,9 @@ executable ach
         aeson,
         http-types,
         postgresql-simple,
-        directory
+        directory,
+        filepath,
+        uuid
 
     -- Directories containing source files.
     hs-source-dirs:   app
