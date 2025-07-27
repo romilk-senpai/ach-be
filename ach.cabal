@@ -120,7 +120,8 @@ executable ach
         time,
         aeson,
         http-types,
-        postgresql-simple
+        postgresql-simple,
+        directory
 
     -- Directories containing source files.
     hs-source-dirs:   app
