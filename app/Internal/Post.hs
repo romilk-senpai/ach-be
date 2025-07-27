@@ -18,6 +18,7 @@ import Data.Time (UTCTime)
 import Database.PostgreSQL.Simple (FromRow)
 import Database.PostgreSQL.Simple.FromRow (FromRow (..), field)
 import GHC.Generics (Generic)
+import Database.PostgreSQL.Simple.Types (PGArray(..))
 
 data Post = Post
   { postId :: Int,
@@ -27,12 +28,13 @@ data Post = Post
     postCreatedAt :: UTCTime,
     postSubject :: Maybe Text,
     postAuthor :: Maybe Text,
-    postContent :: Text
+    postContent :: Text,
+    postMedia :: PGArray Int
   }
   deriving (Show, Eq)
 
 instance FromRow Post where
-  fromRow = Post <$> field <*> field <*> field <*> field <*> field <*> field <*> field <*> field
+  fromRow = Post <$> field <*> field <*> field <*> field <*> field <*> field <*> field <*> field <*> field
 
 data PostDTO = PostDTO
   { id :: Int,
@@ -40,17 +42,19 @@ data PostDTO = PostDTO
     createdAt :: UTCTime,
     subject :: Maybe Text,
     author :: Maybe Text,
-    content :: Text
+    content :: Text,
+    media :: [Int]
   }
   deriving (Generic, ToJSON)
 
 postToDTO :: Post -> PostDTO
-postToDTO (Post pId pLocalId _ _ pCreated pSubject pAuthor pContent) = PostDTO pId pLocalId pCreated pSubject pAuthor pContent
+postToDTO (Post pId pLocalId _ _ pCreated pSubject pAuthor pContent (PGArray pMedia)) = PostDTO pId pLocalId pCreated pSubject pAuthor pContent pMedia
 
 data PostBody = PostBody
   { bodySubject :: Maybe Text,
     bodyAuthor :: Maybe Text,
-    bodyContent :: Text
+    bodyContent :: Text,
+    bodyMedia :: [Int]
   }
   deriving (Generic, Show)
 

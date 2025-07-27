@@ -44,8 +44,12 @@ createThread env req = do
               subject = bodySubject opPost
               author = bodyAuthor opPost
               content = bodyContent opPost
-          dto <- Storage.createThread env boardId subject author content
-          return $ httpJSON dto
+              media = bodyMedia opPost
+          if null media
+            then return $ httpErr badRequest400 "One media is required for op Post"
+            else do
+              dto <- Storage.createThread env boardId subject author content media
+              return $ httpJSON dto
         Nothing ->
           return $ httpErr badRequest400 "Invalid threadId (poshel nahui)"
     Left _ -> return $ httpErr badRequest400 "poshel nahui 2"

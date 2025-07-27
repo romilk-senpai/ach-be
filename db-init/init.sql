@@ -43,7 +43,8 @@ CREATE TABLE posts (
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   subject TEXT,
   author TEXT,
-  content TEXT NOT NULL
+  content TEXT NOT NULL,
+  media integer[]
 );
 
 CREATE UNIQUE INDEX uniq_local_id_per_board ON posts(board_id, local_id);
