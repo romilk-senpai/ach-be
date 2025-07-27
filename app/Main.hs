@@ -10,7 +10,7 @@ import Database.PostgreSQL.Simple (connectPostgreSQL)
 import Handler
 import Internal.Board.Handlers (getBoard)
 import Internal.BoardInfo.Handlers (getBoardInfo)
-import Internal.Media.Handlers (uploadMedia)
+import Internal.Media.Handlers (downloadMedia, uploadMedia)
 import Internal.Post.Handlers (createPost, getThreadPosts)
 import Internal.Thread.Handlers (createThread, getBoardThreads)
 import Middleware.Cors (corsMiddleware)
@@ -40,9 +40,10 @@ main = do
                 addRoute ("GET", "posts") (getThreadPosts env) $
                   addRoute ("POST", "createPost") (createPost env) $
                     addRoute ("POST", "uploadMedia") (uploadMedia env) $
-                      addMiddleware corsMiddleware $
-                        addMiddleware loggerMiddleware $
-                          Router Map.empty []
+                      addRoute ("GET", "downloadMedia") (downloadMedia env) $
+                        addMiddleware corsMiddleware $
+                          addMiddleware loggerMiddleware $
+                            Router Map.empty []
 
   let handler = Handler.createHandler router
 

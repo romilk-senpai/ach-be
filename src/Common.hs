@@ -5,6 +5,7 @@ module Common
     http200,
     httpErr,
     httpJSON,
+    httpMedia,
   )
 where
 
@@ -45,4 +46,15 @@ httpJSON val = do
           (hContentLength, C8.pack (show (BL.length bl)))
         ],
       resBody = bl
+    }
+
+httpMedia :: BS.ByteString -> BS.ByteString -> BS.ByteString -> Response
+httpMedia fileName contentType content = do
+  Response
+    { resStatusCode = ok200,
+      resHeaders =
+        [ ("Content-Type", contentType),
+          ("Content-Disposition", C8.concat ["inline; filename=", fileName])
+        ],
+      resBody = content
     }

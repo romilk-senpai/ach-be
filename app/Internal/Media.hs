@@ -12,13 +12,14 @@ import GHC.Generics (Generic)
 data MediaFile = MediaFile
   { mediaId :: Int,
     createdAt :: UTCTime,
+    mediaName :: String,
     mediaPath :: String,
-    mediaName :: String
+    mediaContentType :: String
   }
   deriving (Show, Eq)
 
 instance FromRow MediaFile where
-  fromRow = MediaFile <$> field <*> field <*> field <*> field
+  fromRow = MediaFile <$> field <*> field <*> field <*> field <*> field
 
 data MediaFileDTO = MediaFileDTO
   { id :: Int,
@@ -28,4 +29,4 @@ data MediaFileDTO = MediaFileDTO
   deriving (Generic, ToJSON)
 
 mediaFileToDTO :: MediaFile -> MediaFileDTO
-mediaFileToDTO (MediaFile mId _ mPath mFileName) = MediaFileDTO mId mPath mFileName
+mediaFileToDTO (MediaFile mId _ mPath mFileName _) = MediaFileDTO mId mPath mFileName
