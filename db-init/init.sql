@@ -82,5 +82,6 @@ CREATE TABLE media (
   id SERIAL PRIMARY KEY,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   file_name TEXT NOT NULL,
-  file_path TEXT NOT NULL
+  file_path TEXT NOT NULL,
+  content_type TEXT NOT NULL
 );
