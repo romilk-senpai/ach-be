@@ -17,8 +17,8 @@ import Data.Text (Text)
 import Data.Time (UTCTime)
 import Database.PostgreSQL.Simple (FromRow)
 import Database.PostgreSQL.Simple.FromRow (FromRow (..), field)
+import Database.PostgreSQL.Simple.Types (PGArray (..))
 import GHC.Generics (Generic)
-import Database.PostgreSQL.Simple.Types (PGArray(..))
 
 data Post = Post
   { postId :: Int,
@@ -29,7 +29,7 @@ data Post = Post
     postSubject :: Maybe Text,
     postAuthor :: Maybe Text,
     postContent :: Text,
-    postMedia :: PGArray Int
+    postMedia :: Maybe (PGArray Int)
   }
   deriving (Show, Eq)
 
@@ -43,12 +43,14 @@ data PostDTO = PostDTO
     subject :: Maybe Text,
     author :: Maybe Text,
     content :: Text,
-    media :: [Int]
+    media :: Maybe [Int]
   }
   deriving (Generic, ToJSON)
 
 postToDTO :: Post -> PostDTO
-postToDTO (Post pId pLocalId _ _ pCreated pSubject pAuthor pContent (PGArray pMedia)) = PostDTO pId pLocalId pCreated pSubject pAuthor pContent pMedia
+postToDTO (Post pId pLocalId _ _ pCreated pSubject pAuthor pContent maybeMedia) =
+  let pMedia = fmap (\(PGArray m) -> m) maybeMedia
+   in PostDTO pId pLocalId pCreated pSubject pAuthor pContent pMedia
 
 data PostBody = PostBody
   { bodySubject :: Maybe Text,
